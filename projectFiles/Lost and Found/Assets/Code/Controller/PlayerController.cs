@@ -142,9 +142,7 @@ public class PlayerController : MonoBehaviour
      // Flip player sprite for left/right walking
      //--------------------------------------
     void changeDirection(string direction)
-     {
-         Debug.Log($"MOVING DIRECTION.... {direction}");
- 
+     { 
          if (_currentDirection != direction)
          {
              if (direction == "left")
