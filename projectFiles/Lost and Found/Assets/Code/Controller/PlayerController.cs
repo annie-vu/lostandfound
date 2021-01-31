@@ -98,7 +98,7 @@ public class PlayerController : MonoBehaviour
         return transform.position.x < screenBounds.y - objectWidth ? true : false;
     }
 
-    public void walkLeft(int distance) {
+    void walkLeft(int distance) {
         if(canWalkLeft()) {
             changeDirection ("left");
             changeState(AnimationState.Walk);
@@ -106,6 +106,12 @@ public class PlayerController : MonoBehaviour
             // walk(new Vector2(-4, 0));
             rb.velocity = new Vector2(-distance, 0);
         }
+    }
+
+    public IEnumerator walkLeftRoutine(int distance, string direction) {
+        walkLeft(distance);
+        yield return new WaitForSeconds (0.5f);
+        changeDirection(direction);
     }
 
     //--------------------------------------
@@ -135,9 +141,8 @@ public class PlayerController : MonoBehaviour
      //--------------------------------------
      // Flip player sprite for left/right walking
      //--------------------------------------
-     public void changeDirection(string direction)
-     {
- 
+    void changeDirection(string direction)
+     { 
          if (_currentDirection != direction)
          {
              if (direction == "left")
