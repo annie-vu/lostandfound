@@ -22,14 +22,14 @@ public class CameraController : MonoBehaviour
         yMax = mapBounds.bounds.max.y;
         mainCam = GetComponent<Camera>();
         camOrthsize = mainCam.orthographicSize;
-        cameraRatio = (xMax + camOrthsize) / 2.0f;
+        cameraRatio = (((float) Screen.width/(float) Screen.height) * camOrthsize);
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void LateUpdate()
     {
         camY = Mathf.Clamp(followTransform.position.y, yMin + camOrthsize, yMax - camOrthsize);
         camX = Mathf.Clamp(followTransform.position.x, xMin + cameraRatio, xMax - cameraRatio);
-        this.transform.position = new Vector3(followTransform.position.x, followTransform.position.y, this.transform.position.z);
+        this.transform.position = new Vector3(camX, camY, this.transform.position.z);
     }
 }
