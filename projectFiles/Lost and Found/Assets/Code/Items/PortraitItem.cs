@@ -9,10 +9,13 @@ public class PortraitItem : InteractableItem {
             BlockingItem hole = GameObject.Find("hole").GetComponent<BlockingItem> ();
             PlayerController dog = GameObject.Find("doggo").GetComponent<PlayerController>();
 
+            // update portrait state because it has already been interacted with
+            // update hole state because portrait is now covering it
             hasInteracted = true;
             hole.unblock();
-            dog.walkLeft(10);
-            dog.changeDirection("right");
+
+            // "cutscene", move dog to the left and then face right
+            StartCoroutine(dog.walkLeftRoutine(10, "right"));
         } else {
             Debug.Log("[PortraitItem] - Portrait has already been knocked over");
         }
