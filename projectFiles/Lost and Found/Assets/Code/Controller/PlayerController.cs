@@ -71,10 +71,7 @@ public class PlayerController : MonoBehaviour
         {
             // if the player is in scope of an interactable item and presses [SPACE], interact with item
             if(Input.GetKey(KeyCode.Space)) {
-                Debug.Log("FORCING DOG TO WALK LEFT");
-                walkLeft(10);
-
-                if(interactableItem != null) {
+                if(interactableItem != null && !interactableItem.hasInteracted) {
                     Debug.Log($"[Player Interaction] - Trigger interaction with {interactableItem.name}");
                     interactableItem.interact();    
                 } else {
@@ -101,7 +98,7 @@ public class PlayerController : MonoBehaviour
         return transform.position.x < screenBounds.y - objectWidth ? true : false;
     }
 
-    private void walkLeft(int distance) {
+    public void walkLeft(int distance) {
         if(canWalkLeft()) {
             changeDirection ("left");
             changeState(AnimationState.Walk);
@@ -138,7 +135,7 @@ public class PlayerController : MonoBehaviour
      //--------------------------------------
      // Flip player sprite for left/right walking
      //--------------------------------------
-     void changeDirection(string direction)
+     public void changeDirection(string direction)
      {
  
          if (_currentDirection != direction)
