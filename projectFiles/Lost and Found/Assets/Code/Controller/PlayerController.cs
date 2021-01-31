@@ -80,7 +80,6 @@ public class PlayerController : MonoBehaviour
                 } else {
                     Debug.Log($"[Player Interaction] - No interactable items in-scope!"); 
                 }
-                
             }
         }
         else
