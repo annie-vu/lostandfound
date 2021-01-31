@@ -8,6 +8,7 @@ public float walkSpeed = 1; // player left right walk speed
  
     Animator animator;
 
+AudioSource m_MyAudioSource;
 
     //animation states - the values in the animator conditions
     const int STATE_IDLE = 0;
@@ -15,12 +16,19 @@ public float walkSpeed = 1; // player left right walk speed
  
     string _currentDirection = "right";
     int _currentAnimationState = STATE_IDLE;
- 
+
+
+
     // Use this for initialization
     void Start()
     {
         //define the animator attached to the player
         animator = this.GetComponent<Animator>();
+
+
+        //Fetch the AudioSource from the GameObject
+        m_MyAudioSource = GetComponent<AudioSource>();
+
     }
  
     // FixedUpdate is used insead of Update to better handle the physics based jump
@@ -33,20 +41,22 @@ if (Input.GetKey (KeyCode.D))
             changeDirection ("right");
             transform.Translate(Vector3.right * walkSpeed * Time.deltaTime);
             changeState(STATE_WALK);
- 
         }
         else if (Input.GetKey (KeyCode.A))
         {
             changeDirection ("left");
             transform.Translate(Vector3.right * walkSpeed * Time.deltaTime);
             changeState(STATE_WALK);
- 
+
         }
         else
         {
             changeState(STATE_IDLE);
+
+            //Stop the audio
+            m_MyAudioSource.Stop();
+
         }
- 
     }
  
     //--------------------------------------
@@ -60,6 +70,9 @@ if (Input.GetKey (KeyCode.D))
         switch (state) {
  
         case STATE_WALK:
+
+            //Play the audio you attach to the AudioSource component
+            m_MyAudioSource.Play();
             animator.SetInteger ("state", STATE_WALK);
             break;
 
@@ -93,4 +106,8 @@ if (Input.GetKey (KeyCode.D))
          }
  
      }
+
 }
+
+
+
