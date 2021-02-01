@@ -84,7 +84,7 @@ public class PlayerController : MonoBehaviour
             changeState(AnimationState.Idle);
 
             //Stop the audio
-            m_MyAudioSource.Stop();
+            m_MyAudioSource.volume = 0;
 
             rb.velocity = new Vector2(0, 0);
         }
@@ -126,7 +126,7 @@ public class PlayerController : MonoBehaviour
             case AnimationState.Walk:
 
                 //Play the audio you attach to the AudioSource component
-                m_MyAudioSource.Play();
+                m_MyAudioSource.volume = 1;
                 animator.SetInteger ("state", (int) AnimationState.Walk);
                 break;
 
