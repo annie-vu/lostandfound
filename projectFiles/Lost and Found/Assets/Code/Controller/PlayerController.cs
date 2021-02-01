@@ -11,19 +11,27 @@ public class PlayerController : MonoBehaviour
     private float objectWidth;
 
     //--------------------------------------
+    // Collision properties
+    //--------------------------------------
+    
+    // determines whether the player's path is blocked
+    // TODO: make this a list of BlockingItem, to keep track of what items are currently in-scope and blocking player
+    public bool isBlocked = false;
+
+    // the interactable item currently in scope for the player
+    public InteractableItem interactableItem;
+
+    //--------------------------------------
     // Animation properties
     //--------------------------------------
     public Animator animator;
     public AudioSource m_MyAudioSource;
-    public float walkSpeed = 1; // player left right walk speed
         
     //animation states - the values in the animator conditions
     private enum AnimationState {
         Idle = 0,
         Walk = 1
     }
-    // const int STATE_IDLE = 0;
-    // const int STATE_WALK = 1;
  
     string _currentDirection = "right";
     AnimationState _currentAnimationState = AnimationState.Idle;
@@ -44,36 +52,69 @@ public class PlayerController : MonoBehaviour
     // FixedUpdate is used insead of Update to better handle the physics based jump
     void FixedUpdate()
     {
-        bool moveLeft = transform.position.x > screenBounds.x + objectWidth ? true : false;
-        bool moveRight = transform.position.x < screenBounds.y - objectWidth ? true : false;
-
         //Check for keyboard input
-        if (Input.GetKey (KeyCode.D) & moveRight)
+        if ((Input.GetKey (KeyCode.D) || Input.GetKey (KeyCode.RightArrow)) & canWalkRight())
         {
             changeDirection ("right");
             changeState(AnimationState.Walk);
-
-            rb.velocity = new Vector2(4, 0);
+            walk(new Vector2(4, 0));
         }
-        else if (Input.GetKey (KeyCode.A) & moveLeft)
+        else if ((Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow)) && canWalkLeft())
         {
-            changeDirection ("left");
-            changeState(AnimationState.Walk);
+            // changeDirection ("left");
+            // changeState(AnimationState.Walk);
 
-            rb.velocity = new Vector2(-4, 0);
+            // // walk(new Vector2(-4, 0));
+            // rb.velocity = new Vector2(-4, 0);
+            walkLeft(4);
+        } else if (Input.GetKey(KeyCode.Space)) 
+        {
+            // if the player is in scope of an interactable item and presses [SPACE], interact with item
+            if(Input.GetKey(KeyCode.Space)) {
+                if(interactableItem != null && !interactableItem.hasInteracted) {
+                    Debug.Log($"[Player Interaction] - Trigger interaction with {interactableItem.name}");
+                    interactableItem.interact();    
+                } else {
+                    Debug.Log($"[Player Interaction] - No interactable items in-scope!"); 
+                }
+            }
         }
         else
         {
             changeState(AnimationState.Idle);
 
             //Stop the audio
-            m_MyAudioSource.Stop();
+            m_MyAudioSource.volume = 0;
 
             rb.velocity = new Vector2(0, 0);
         }
     }
 
-        //--------------------------------------
+    private bool canWalkLeft() {
+        return transform.position.x > screenBounds.x + objectWidth ? true : false;
+    }
+
+    private bool canWalkRight() {
+        return transform.position.x < screenBounds.y - objectWidth ? true : false;
+    }
+
+    void walkLeft(int distance) {
+        if(canWalkLeft()) {
+            changeDirection ("left");
+            changeState(AnimationState.Walk);
+
+            // walk(new Vector2(-4, 0));
+            rb.velocity = new Vector2(-distance, 0);
+        }
+    }
+
+    public IEnumerator walkLeftRoutine(int distance, string direction) {
+        walkLeft(distance);
+        yield return new WaitForSeconds (0.5f);
+        changeDirection(direction);
+    }
+
+    //--------------------------------------
     // Change the players animation state
     //--------------------------------------
     void changeState(AnimationState state){
@@ -85,7 +126,7 @@ public class PlayerController : MonoBehaviour
             case AnimationState.Walk:
 
                 //Play the audio you attach to the AudioSource component
-                m_MyAudioSource.Play();
+                m_MyAudioSource.volume = 1;
                 animator.SetInteger ("state", (int) AnimationState.Walk);
                 break;
 
@@ -100,9 +141,8 @@ public class PlayerController : MonoBehaviour
      //--------------------------------------
      // Flip player sprite for left/right walking
      //--------------------------------------
-     void changeDirection(string direction)
-     {
- 
+    void changeDirection(string direction)
+     { 
          if (_currentDirection != direction)
          {
              if (direction == "left")
@@ -117,4 +157,46 @@ public class PlayerController : MonoBehaviour
              }
          }
      }
+
+    void walk(Vector2 vector) {
+        if(!isBlocked) {
+            rb.velocity = vector;
+        } else {
+            Debug.Log("[Player Walk] - Cannot move, blocked by item!");
+            rb.velocity = new Vector2(0, 0);
+        }
+    }     
+
+    void OnTriggerEnter2D(Collider2D other) {
+        switch(other.name) {
+            case ItemNames.Portrait:
+                Debug.Log("[Player to Portrait Item] - Collided with Portrait!");
+                PortraitItem portrait = (other.GetComponent<PortraitItem>());
+                if(!portrait.hasInteracted) {
+                    interactableItem = portrait;    
+                }
+                break;
+            default:
+                GenericItem collideItem = GameObject.Find(other.name).GetComponent<GenericItem> ();
+                if(collideItem.isBlocking) {
+                    Debug.Log("[Player to Blocking Item] - Blocked by item!");
+                    isBlocked = true;
+                } else {
+                    Debug.Log("[Player to Blocking Item] - Item state no longer blocking!");
+                    isBlocked = false;
+                }
+                break;
+        }
+     }
+
+    void OnTriggerExit2D(Collider2D other) {
+        // if the current in-scope interactable item has become out-of-scope, remove reference
+        GenericItem collideItem = GameObject.Find(other.name).GetComponent<GenericItem> ();
+        if(collideItem.isInteractable && (interactableItem != null && interactableItem.name == other.name)) {
+            Debug.Log($"[OnTriggerExit2D] - {interactableItem.name} has been removed as in-scope interactable");
+            interactableItem = null;
+        }
+
+        isBlocked = false;
+    }
 }
